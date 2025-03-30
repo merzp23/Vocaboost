@@ -37,24 +37,85 @@
                 <div class="row">
                     {% for word in words %}
                         <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="card word-card" data-word-id="{{ word.id }}">
+                                <!-- Collapsed view (always visible) -->
+                                <div class="card-header d-flex justify-content-between align-items-center" 
+                                     role="button" 
+                                     onclick="toggleWordDetails(this)">
                                     <h5 class="card-title mb-0">{{ word.text }}</h5>
-                                    {% if word.audio_url %}
-                                        <button class="btn btn-sm btn-outline-secondary rounded-circle p-1" 
-                                                onclick="playAudio('{{ word.audio_url }}')">
-                                            <i class="bi bi-volume-up"></i>
+                                    <div class="d-flex align-items-center">
+                                        {% if word.audio_url %}
+                                            <button class="btn btn-sm btn-outline-secondary rounded-circle p-1 me-2" 
+                                                    onclick="playAudio('{{ word.audio_url }}', event)">
+                                                <i class="bi bi-volume-up"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        {% if word.audio_url %}
+                                            <button class="btn btn-sm btn-outline-secondary rounded-circle p-1 me-2" 
+                                                    onclick="playAudio('{{ word.audio_url }}', event)">
+                                                <i class="bi bi-volume-up"></i>
+                                            </button>
+                                        {% endif %}
+                                        
+                                        <!-- Add this delete button -->
+                                        <button class="btn btn-sm btn-outline-danger rounded-circle p-1 me-2 delete-word-btn" 
+                                                data-word-id="{{ word.id }}" 
+                                                data-word-text="{{ word.text }}">
+                                            <i class="bi bi-trash"></i>
                                         </button>
+                                        
+                                        <i class="bi bi-chevron-down toggle-icon"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Expanded details (hidden by default) -->
+                                <!-- Update the expanded details section in words.html -->
+                                <div class="card-body word-details d-none">
+                                    {% if word.definitions %}
+                                        {% set grouped_definitions = word.get_definitions_by_type() %}
+                                        {% for pos, definitions in grouped_definitions.items() %}
+                                            <div class="pos-group mb-3">
+                                                <h6 class="text-primary mb-2">{{ pos }}</h6>
+                                                
+                                                {% for definition in definitions %}
+                                                <div class="definition mb-2 ps-3">
+                                                    <p class="mb-1">{{ loop.index }}. {{ definition.text }}</p>
+                                                    <!-- Add to review.html and words.html where examples are displayed -->
+                                                    {% if definition.example %}
+                                                        <div class="text-muted fst-italic mb-2 border-start border-3 border-primary ps-4">
+                                                            "{{ definition.example }}"
+                                                            {% if definition.example_is_generated %}
+                                                                <span class="badge bg-info ms-1 text-bg-primary">AI-generated</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if definition.get_synonyms() and definition.get_synonyms()|length > 0 %}
+                                                        <div class="small mb-1">
+                                                            <strong>Synonyms:</strong> 
+                                                            {% for synonym in definition.get_synonyms() %}
+                                                                <span class="badge bg-light text-secondary me-1">{{ synonym }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                            </div>
+                                            {% if not loop.last %}<hr class="my-3">{% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Fallback to basic definition -->
+                                        <p class="mb-2">{{ word.definition }}</p>
+                                        {% if word.example %}
+                                            <p class="text-muted fst-italic mb-0 border-start border-3 border-primary ps-2">
+                                                "{{ word.example }}"
+                                            </p>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
-                                <div class="card-body">
-                                    <p class="mb-2">{{ word.definition }}</p>
-                                    {% if word.example %}
-                                        <p class="text-muted fst-italic mb-0 border-start border-3 border-primary ps-2">
-                                            "{{ word.example }}"
-                                        </p>
-                                    {% endif %}
-                                </div>
+                                
                                 <div class="card-footer text-muted d-flex justify-content-between">
                                     <small>
                                         {% if level == 0 %}
@@ -85,7 +146,13 @@
 
 {% block scripts %}
 <script>
-    function playAudio(audioUrl) {
+
+    function playAudio(audioUrl, event) {
+        // Stop propagation to prevent the card from expanding/collapsing
+        if (event) {
+            event.stopPropagation();
+        }
+        
         if (audioUrl) {
             const audio = new Audio(audioUrl);
             audio.play().catch(e => {
@@ -94,6 +161,26 @@
             });
         }
     }
+    
+    function toggleWordDetails(element) {
+        const card = element.closest('.word-card');
+        const detailsElement = card.querySelector('.word-details');
+        const icon = card.querySelector('.toggle-icon');
+        
+        // Toggle the details
+        if (detailsElement.classList.contains('d-none')) {
+            // Expand
+            detailsElement.classList.remove('d-none');
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-up');
+        } else {
+            // Collapse
+            detailsElement.classList.add('d-none');
+            icon.classList.remove('bi-chevron-up');
+            icon.classList.add('bi-chevron-down');
+        }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
         // Get all tab buttons
         const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -114,5 +201,114 @@
             });
         });
     });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up event listeners for delete buttons
+        document.querySelectorAll('.delete-word-btn').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const wordId = this.getAttribute('data-word-id');
+                const wordText = this.getAttribute('data-word-text');
+                deleteWord(wordId, wordText, event);
+            });
+        });
+    });
+    // Add this function in your scripts block
+
+    function deleteWord(wordId, wordText, event) {
+        // Stop event propagation
+        if (event) {
+            event.stopPropagation();
+        }
+        
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete "${wordText}"?`)) {
+            return;
+        }
+        
+        // Send AJAX request to delete the word
+        fetch(`/delete-word/${wordId}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            // Check if response is OK before parsing JSON
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Remove the card from the DOM
+                const card = document.querySelector(`.word-card[data-word-id="${wordId}"]`);
+                if (card) {
+                    const column = card.closest('.col-md-6');
+                    const levelPane = column.closest('.tab-pane');
+                    const levelId = levelPane.id;
+                    
+                    // Remove the card
+                    column.remove();
+                    
+                    // Update the counter badge
+                    const level = levelId.replace('level', '');
+                    const badge = document.querySelector(`#level${level}-tab .badge`);
+                    if (badge) {
+                        const count = parseInt(badge.textContent) - 1;
+                        badge.textContent = count;
+                    }
+                    
+                    // Show success message
+                    showToast(`Word "${wordText}" has been deleted`, 'success');
+                }
+            } else {
+                // Show error message
+                showToast(`Error deleting word: ${data.error || 'Unknown error'}`, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast(`Error: ${error.message}`, 'danger');
+        });
+    }
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        // Check if toast container exists, create if not
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast element
+        const toastId = `toast-${Date.now()}`;
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white bg-${type}" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        // Add toast to container
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        // Initialize and show the toast
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+        toast.show();
+        
+        // Remove toast after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
+    }
 </script>
 {% endblock %}

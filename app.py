@@ -4,6 +4,8 @@ from vocaboost.database.db import init_app as init_db
 from vocaboost.models.word import Word
 from vocaboost.models.progress import Progress
 import json
+from vocaboost.database.db import db
+
 
 def create_app():
     app = Flask(__name__, 
@@ -22,7 +24,7 @@ def create_app():
         """Make recent words available to all templates"""
         recent_words = Word.query.order_by(Word.created_at.desc()).limit(5).all()
         return dict(recent_words=recent_words)
-    # Add this in your create_app function, before the first route
+    
     @app.template_filter('fromjson')
     def fromjson(value):
         """Parse a JSON string into a Python object for templates"""
@@ -38,7 +40,12 @@ def create_app():
         if request.method == 'POST':
             search_term = request.form.get('search', '').strip()
             if search_term:
+                # Get the word data
                 word_data = DictionaryService.get_definition(search_term)
+                
+                # Enrich with AI-generated examples
+                if word_data:
+                    word_data = DictionaryService.enrich_with_examples(word_data)
         
         # Get recently saved words for sidebar
         return render_template('index.html', 
@@ -94,6 +101,29 @@ def create_app():
             return jsonify({'success': True})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
+    #Delete a word
+    @app.route('/delete-word/<int:word_id>', methods=['POST'])
+    def delete_word(word_id):
+        try:
+            # Find the word
+            word = Word.query.get_or_404(word_id)
+            
+            # Get the word text for confirmation message
+            word_text = word.text
+            
+            # Delete the word (will cascade to definitions because of relationship)
+            db.session.delete(word)
+            db.session.commit()
+            
+            # Return JSON response
+            return jsonify({'success': True, 'message': f'Word "{word_text}" deleted successfully'})
+            
+        except Exception as e:
+            # Log the error
+            print(f"Error deleting word: {str(e)}")
+            
+            # Return error response as JSON
+            return jsonify({'success': False, 'error': str(e)})
         
     @app.route('/words', methods=['GET'])
     def words_by_level():
@@ -134,7 +164,9 @@ def create_app():
                             words_by_level=words_by_level,
                             total_words=total_words)
     return app
-
+    
+    # This must be the last line in create_app
+    return app
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)

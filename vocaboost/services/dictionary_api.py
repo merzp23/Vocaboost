@@ -1,4 +1,5 @@
 import requests
+from vocaboost.services.gemini_api import GeminiService
 
 class DictionaryService:
     """Service for fetching word definitions from the Dictionary API"""
@@ -27,3 +28,36 @@ class DictionaryService:
         except Exception as e:
             print(f"Error fetching definition: {e}")
             return None
+    @classmethod
+    def enrich_with_examples(cls, word_data):
+        """Add AI-generated examples to definitions that don't have them"""
+        if not word_data:
+            return word_data
+            
+        # Track if any examples were generated
+        examples_generated = False
+            
+        # Process each meaning
+        for meaning in word_data[0].get('meanings', []):
+            part_of_speech = meaning.get('partOfSpeech', '')
+            
+            # Process each definition
+            for definition in meaning.get('definitions', []):
+                # Skip if it already has an example
+                if 'example' in definition and definition['example']:
+                    continue
+                    
+                # Generate example
+                generated_example = GeminiService.generate_example(
+                    word_data[0].get('word', ''),
+                    definition.get('definition', ''),
+                    part_of_speech
+                )
+                
+                if generated_example:
+                    definition['example'] = generated_example
+                    # Add a flag to mark AI-generated examples
+                    definition['example_is_generated'] = True
+                    examples_generated = True
+        
+        return word_data

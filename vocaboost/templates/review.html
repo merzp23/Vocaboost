@@ -53,15 +53,51 @@
                         </div>
                     </div>
                     
+                    <!-- Update the review-back section in review.html -->
                     <div class="review-back d-none">
-                        <div class="definition-box p-3 bg-light rounded mb-4">
-                            <p class="mb-0">{{ progress.word.definition }}</p>
-                        </div>
-                        
-                        {% if progress.word.example %}
-                            <div class="example-box p-3 border-start border-3 border-primary mb-4">
-                                <p class="mb-0 fst-italic">"{{ progress.word.example }}"</p>
+                        {% if progress.word.definitions %}
+                            {% set grouped_definitions = progress.word.get_definitions_by_type() %}
+                            {% for pos, definitions in grouped_definitions.items() %}
+                                <div class="pos-group mb-3">
+                                    <h6 class="text-primary mb-2">{{ pos }}</h6>
+                                    
+                                    {% for definition in definitions %}
+                                        <div class="definition mb-2 ps-3">
+                                            <p class="mb-1">{{ loop.index }}. {{ definition.text }}</p>
+                                            <!-- Add to review.html and words.html where examples are displayed -->
+                                            {% if definition.example %}
+                                                <div class="text-muted fst-italic mb-2 border-start border-3 border-primary ps-4">
+                                                    "{{ definition.example }}"
+                                                    {% if definition.example_is_generated %}
+                                                        <span class="badge bg-info ms-1 text-bg-primary">AI-generated</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if definition.get_synonyms() and definition.get_synonyms()|length > 0 %}
+                                                <div class="small mb-1">
+                                                    <strong>Synonyms:</strong> 
+                                                    {% for synonym in definition.get_synonyms() %}
+                                                        <span class="badge bg-light text-secondary me-1">{{ synonym }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if not loop.last %}<hr class="my-3">{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <!-- Fallback to simple definition if no detailed definitions available -->
+                            <div class="definition-box p-3 bg-light rounded mb-4">
+                                <p class="mb-0">{{ progress.word.definition }}</p>
                             </div>
+                            
+                            {% if progress.word.example %}
+                                <div class="example-box ps-3 border-start border-3 border-primary mb-4">
+                                    <p class="mb-0 fst-italic">"{{ progress.word.example }}"</p>
+                                </div>
+                            {% endif %}
                         {% endif %}
                         
                         <p class="text-center mb-4">How well did you remember this word?</p>

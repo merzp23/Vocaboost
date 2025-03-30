@@ -48,9 +48,12 @@
                                 <li class="list-group-item border-0">
                                     <div>{{ definition.definition }}</div>
                                     {% if definition.example %}
-                                        <p class="text-muted fst-italic mt-1 ps-2 border-start border-3 border-primary">
-                                            "{{ definition.example }}"
-                                        </p>
+                                    <div class="text-muted fst-italic mb-2 border-start border-3 border-primary ps-4">
+                                        "{{ definition.example }}"
+                                        {% if definition.example_is_generated %}
+                                            <span class="badge bg-info ms-1 text-bg-primary">AI-generated</span>
+                                        {% endif %}
+                                    </div>
                                     {% endif %}
                                 </li>
                             {% endfor %}

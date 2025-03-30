@@ -114,3 +114,60 @@ main {
         overflow-y: auto;
     }
 }
+/* Add this to your style.css file */
+.word-card .card-header {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.word-card .card-header:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.toggle-icon {
+    transition: transform 0.2s;
+}
+
+.word-details {
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+/* Add to style.css */
+.pos-group h6 {
+    text-transform: capitalize;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+}
+
+.definition p {
+    text-indent: -1rem;
+    padding-left: 1rem;
+}
+/* Add to your CSS file if not already there */
+.badge.bg-secondary {
+    font-size: 0.7rem;
+    padding: 0.2em 0.4em;
+    opacity: 0.7;
+}
+/* Add to your CSS file */
+.btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+#toast-container {
+    z-index: 1050;
+}
