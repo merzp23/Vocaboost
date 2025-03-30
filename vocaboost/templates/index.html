@@ -1,98 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VocaBoost</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>VocaBoost</h1>
-            <p>Vocabulary Learning Made Simple</p>
-        </header>
+{% extends 'base.html' %}
 
-        <main>
-            <section class="search-section">
-                <form method="POST" action="/">
-                    <div class="search-container">
-                        <input type="text" name="search" id="search" placeholder="Search for a word..." value="{{ search_term }}" required>
-                        <button type="submit">Search</button>
-                    </div>
-                </form>
-            </section>
+{% block title %}VocaBoost - Search{% endblock %}
 
-            <section class="result-section">
-                {% if word_data %}
-                <div class="word-card">
-                    <div class="word-card-header">
-                        <h2>{{ word_data[0].word }}</h2>
-                        <button id="saveButton" class="save-btn" onclick="saveWord('{{ word_data[0].word }}')">
-                            Save
-                        </button>
-                    </div>
-                    <!-- new section -->
+{% block content %}
+<!-- Remove the search form section since it's now in the sidebar -->
+
+<section class="result-section">
+    {% if word_data %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <h2 class="fs-3 mb-0 me-2">{{ word_data[0].word }}</h2>
                     {% if word_data[0].phonetics %}
                         {% set found_audio = false %}
                         {% for phonetic in word_data[0].phonetics %}
                             {% if phonetic.audio and not found_audio %}
                                 {% set found_audio = true %}
-                                <button class="audio-btn" onclick="playAudio('{{ phonetic.audio }}')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                <button class="btn btn-sm btn-outline-secondary rounded-circle p-1" 
+                                        onclick="playAudio('{{ phonetic.audio }}')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                                         fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/>
+                                        <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.483 5.483 0 0 1 11.025 8a5.483 5.483 0 0 1-1.61 3.89l.706.706z"/>
+                                        <path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/>
                                     </svg>
                                 </button>
                             {% endif %}
                         {% endfor %}
                     {% endif %}
-                    <!-- new section -->
-                        {% if word_data[0].phonetic %}
-                            <p class="phonetic">{{ word_data[0].phonetic }}</p>
-                        {% endif %}
-                        
-                        {% for meaning in word_data[0].meanings %}
-                            <div class="meaning">
-                                <h3>{{ meaning.partOfSpeech }}</h3>
-                                <ol class="definitions">
-                                    {% for definition in meaning.definitions %}
-                                        <li>
-                                            <p>{{ definition.definition }}</p>
-                                            {% if definition.example %}
-                                                <p class="example">"{{ definition.example }}"</p>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ol>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% elif search_term %}
-                    <div class="not-found">
-                        <p>No definition found for "{{ search_term }}". Please check the spelling or try another word.</p>
-                    </div>
+                </div>
+                <button id="saveButton" class="btn btn-success" onclick="saveWord('{{ word_data[0].word }}')">
+                    Save
+                </button>
+            </div>
+            
+            <div class="card-body">
+                <!-- Rest of your word display code -->
+                {% if word_data[0].phonetic %}
+                    <p class="text-muted fst-italic mb-3">{{ word_data[0].phonetic }}</p>
                 {% endif %}
-            </section>
-        </main>
+                
+                {% for meaning in word_data[0].meanings %}
+                    <div class="meaning mb-4">
+                        <h3 class="fs-5 text-secondary border-bottom pb-2 mb-3">{{ meaning.partOfSpeech }}</h3>
+                        <ol class="list-group list-group-numbered">
+                            {% for definition in meaning.definitions %}
+                                <li class="list-group-item border-0">
+                                    <div>{{ definition.definition }}</div>
+                                    {% if definition.example %}
+                                        <p class="text-muted fst-italic mt-1 ps-2 border-start border-3 border-primary">
+                                            "{{ definition.example }}"
+                                        </p>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% elif search_term %}
+        <div class="alert alert-warning" role="alert">
+            No definition found for "{{ search_term }}". Please check the spelling or try another word.
+        </div>
+    {% else %}
+        <div class="welcome-message text-center mt-5">
+            <i class="bi bi-book display-1 text-primary mb-4"></i>
+            <h2>Welcome to VocaBoost</h2>
+            <p class="lead">Use the search bar in the sidebar to look up words</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
 
-        <footer>
-            <p>&copy; 2023 VocaBoost</p>
-        </footer>
-    </div>
-    <script>
-        function playAudio(audioUrl) {
-            if (audioUrl) {
-                const audio = new Audio(audioUrl);
-                audio.play().catch(e => {
-                    console.error('Error playing audio:', e);
-                    alert('Could not play audio pronunciation');
-                });
-            }
+{% block scripts %}
+
+// Add this block in the scripts section of your index.html file
+<script>
+    // Make sure the word data is available globally
+    {% if word_data %}
+        window.currentWordData = {{ word_data|tojson }};
+    {% endif %}
+    
+    function saveWord(word) {
+        console.log("Saving word:", word);
+        console.log("Word data:", window.currentWordData);
+        
+        if (!window.currentWordData) {
+            alert('Error: Word data not available');
+            return;
         }
-        function saveWord(word) {
-        // Send an AJAX request to save the word
+        
         fetch('/save-word', {
             method: 'POST',
             headers: {
@@ -103,18 +101,25 @@
                 data: JSON.stringify(window.currentWordData)
             }),
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                // Change button appearance
+                // Update button appearance
                 const saveButton = document.getElementById('saveButton');
                 saveButton.textContent = "Saved";
-                saveButton.classList.add('saved');
+                saveButton.classList.remove('btn-success');
+                saveButton.classList.add('btn-secondary');
+                saveButton.disabled = true;
                 
-                // Optionally show a notification
+                // Show success message
                 alert('Word saved successfully!');
             } else {
-                alert('Failed to save word: ' + data.error);
+                alert('Failed to save word: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
@@ -122,7 +127,6 @@
             alert('An error occurred while saving the word');
         });
     }
-    </script>
-    
-</body>
-</html>
+</script>
+
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}VocaBoost - My Words{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <h1 class="h3">My Vocabulary</h1>
+    <span class="badge bg-primary fs-6">{{ total_words }} words</span>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="wordTabs" role="tablist">
+    {% for level in range(6) %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if level == 0 %}active{% endif %}" 
+                    id="level{{ level }}-tab" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#level{{ level }}" 
+                    type="button" 
+                    role="tab" 
+                    aria-controls="level{{ level }}" 
+                    aria-selected="{% if level == 0 %}true{% else %}false{% endif %}">
+                Level {{ level }}
+                <span class="badge bg-secondary rounded-pill ms-2">{{ words_by_level[level]|length }}</span>
+            </button>
+        </li>
+    {% endfor %}
+</ul>
+
+<div class="tab-content" id="wordTabsContent">
+    {% for level, words in words_by_level.items() %}
+        <div class="tab-pane fade {% if level == 0 %}show active{% endif %}" 
+             id="level{{ level }}" 
+             role="tabpanel" 
+             aria-labelledby="level{{ level }}-tab">
+            
+            {% if words %}
+                <div class="row">
+                    {% for word in words %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">{{ word.text }}</h5>
+                                    {% if word.audio_url %}
+                                        <button class="btn btn-sm btn-outline-secondary rounded-circle p-1" 
+                                                onclick="playAudio('{{ word.audio_url }}')">
+                                            <i class="bi bi-volume-up"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">{{ word.definition }}</p>
+                                    {% if word.example %}
+                                        <p class="text-muted fst-italic mb-0 border-start border-3 border-primary ps-2">
+                                            "{{ word.example }}"
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer text-muted d-flex justify-content-between">
+                                    <small>
+                                        {% if level == 0 %}
+                                            New word
+                                        {% elif level == 5 %}
+                                            Mastered
+                                        {% else %}
+                                            Level {{ level }}
+                                        {% endif %}
+                                    </small>
+                                    {% if word.next_review %}
+                                        <small>Next review: {{ word.next_review.strftime('%Y-%m-%d') }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light text-center">
+                    <p class="mb-0">No words in this level yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function playAudio(audioUrl) {
+        if (audioUrl) {
+            const audio = new Audio(audioUrl);
+            audio.play().catch(e => {
+                console.error('Error playing audio:', e);
+                alert('Could not play audio pronunciation');
+            });
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all tab buttons
+        const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        
+        // Add click handlers to each button
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Get the target pane ID
+                const targetId = this.getAttribute('data-bs-target').substring(1);
+                
+                // Hide all tab panes first
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                
+                // Show only the selected tab pane
+                document.getElementById(targetId).classList.add('show', 'active');
+            });
+        });
+    });
+</script>
+{% endblock %}

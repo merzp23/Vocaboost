@@ -1,193 +1,116 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* Custom styles that supplement Bootstrap */
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f9f9f9;
+    background-color: #f8f9fa;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
-header {
-    text-align: center;
-    margin-bottom: 40px;
-    padding: 20px 0;
-    border-bottom: 1px solid #eee;
-}
-
-header h1 {
+.card-header h2 {
     color: #4a6fa5;
-    margin-bottom: 10px;
 }
 
-.search-section {
-    margin-bottom: 30px;
+.border-start.border-primary {
+    border-color: #4a6fa5 !important;
 }
 
-.search-container {
-    display: flex;
-    max-width: 600px;
-    margin: 0 auto;
+/* Preserve space for definitions */
+.list-group-numbered {
+    padding-left: 1rem;
 }
 
-input[type="text"] {
-    flex: 1;
-    padding: 15px;
-    font-size: 16px;
-    border: 2px solid #ddd;
-    border-radius: 4px 0 0 4px;
-    outline: none;
-}
-
-input[type="text"]:focus {
-    border-color: #4a6fa5;
-}
-
-button {
-    padding: 15px 25px;
-    background-color: #4a6fa5;
-    color: white;
-    border: none;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover {
-    background-color: #3a5f95;
-}
-
-.result-section {
-    padding: 20px 0;
-}
-
-.word-card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 25px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.word-card h2 {
-    color: #4a6fa5;
-    margin-bottom: 5px;
-    font-size: 2rem;
-}
-
-.phonetic {
-    color: #888;
-    margin-bottom: 20px;
-    font-style: italic;
-    flex-basis: 100%;
-    margin-top: 5px;
-}
-
-.meaning {
-    margin-bottom: 25px;
-}
-
-.meaning h3 {
-    color: #555;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-    margin-bottom: 15px;
-    font-style: italic;
-}
-
-.definitions {
-    padding-left: 25px;
-}
-
-.definitions li {
-    margin-bottom: 10px;
-}
-
-.example {
-    color: #666;
-    font-style: italic;
-    margin-top: 5px;
-    padding-left: 10px;
-    border-left: 3px solid #4a6fa5;
-}
-
-.not-found {
-    text-align: center;
-    color: #777;
-    padding: 20px;
-}
-
-footer {
-    text-align: center;
-    margin-top: 50px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-    color: #777;
-}
-.word-header {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-}
-
-.word-header h2 {
-    margin-right: 15px;
-    margin-bottom: 0;
-}
-
-.audio-btn {
-    background-color: transparent;
-    border: none;
-    color: #4a6fa5;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-.audio-btn:hover {
+/* Custom styling for audio button hover */
+.btn-outline-secondary.rounded-circle:hover {
     background-color: rgba(74, 111, 165, 0.1);
 }
 
-.audio-btn svg {
-    width: 20px;
-    height: 20px;
+/* Add these styles to your style.css file */
+
+/* Sidebar styles */
+.sidebar {
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    z-index: 100;
+    padding: 20px 0;
+    height: 100vh;
+    position: sticky;
+    top: 0;
 }
-/* Add these styles for the save button */
-.word-card-header {
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        height: auto;
+        position: relative;
+        padding-bottom: 10px;
+    }
+}
+
+.sidebar .nav-link {
+    color: #333;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.sidebar .nav-link:hover {
+    color: #4a6fa5;
+}
+
+.sidebar .nav-link.active {
+    color: #4a6fa5;
+    background-color: rgba(74, 111, 165, 0.1);
+    border-left: 3px solid #4a6fa5;
+}
+
+.sidebar-footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+}
+
+/* Main content styles */
+main {
+    min-height: 100vh;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    flex-direction: column;
 }
 
-.save-btn {
-    background-color: #4a6fa5;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
+.content-wrapper {
+    flex: 1;
 }
 
-.save-btn:hover {
-    background-color: #3a5f95;
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .sidebar {
+        display: block !important;
+    }
+}/* Add to your style.css file */
+.sidebar .form-control {
+    height: 38px;
+    font-size: 0.9rem;
 }
 
-.save-btn.saved {
-    background-color: #45a049;
+.sidebar .form-control:focus {
+    border-color: #4a6fa5;
+    box-shadow: 0 0 0 0.25rem rgba(74, 111, 165, 0.25);
+}
+
+.sidebar-heading {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+}
+
+.welcome-message {
+    padding: 3rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+/* Make sure sidebar has appropriate height on mobile */
+@media (max-width: 767.98px) {
+    .sidebar {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
 }

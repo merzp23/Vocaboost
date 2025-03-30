@@ -16,7 +16,20 @@ def create_app():
     
     # Initialize database
     init_db(app)
-    
+
+    @app.context_processor
+    def inject_recent_words():
+        """Make recent words available to all templates"""
+        recent_words = Word.query.order_by(Word.created_at.desc()).limit(5).all()
+        return dict(recent_words=recent_words)
+    # Add this in your create_app function, before the first route
+    @app.template_filter('fromjson')
+    def fromjson(value):
+        """Parse a JSON string into a Python object for templates"""
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return None
     @app.route('/', methods=['GET', 'POST'])
     def index():
         word_data = None
@@ -27,8 +40,10 @@ def create_app():
             if search_term:
                 word_data = DictionaryService.get_definition(search_term)
         
-        return render_template('index.html', word_data=word_data, search_term=search_term)
-    
+        # Get recently saved words for sidebar
+        return render_template('index.html', 
+                            word_data=word_data, 
+                            search_term=search_term)
     @app.route('/save-word', methods=['POST'])
     def save_word():
         try:
@@ -47,7 +62,77 @@ def create_app():
             return jsonify({'success': True})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
-    
+        
+    @app.route('/review', methods=['GET'])
+    def review():
+        # Get words due for review with their progress
+        due_words = Progress.get_due_words(limit=10)
+        
+        # Load the complete word for each progress item
+        due_words_with_details = []
+        for progress in due_words:
+            word = Word.query.get(progress.word_id)
+            if word:
+                progress.word = word
+                due_words_with_details.append(progress)
+        
+        return render_template('review.html', due_words=due_words_with_details)
+
+    @app.route('/review-word', methods=['POST'])
+    def review_word():
+        try:
+            data = request.get_json()
+            word_id = data.get('word_id')
+            recalled_correctly = data.get('recalled_correctly', False)
+            
+            progress = Progress.query.filter_by(word_id=word_id).first()
+            if not progress:
+                return jsonify({'success': False, 'error': 'Progress not found'})
+                
+            progress.update_review(recalled_correctly)
+            
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)})
+        
+    @app.route('/words', methods=['GET'])
+    def words_by_level():
+        """Display all saved words organized by memory level"""
+        
+        # Create a dictionary to store words by level
+        words_by_level = {
+            0: [], # New words
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: []  # Mastered words
+        }
+        
+        # Get all words with their progress
+        words = Word.query.all()
+        
+        for word in words:
+            # Get the progress for this word
+            progress = Progress.query.filter_by(word_id=word.id).first()
+            level = 0
+            
+            if progress:
+                level = progress.memory_level
+                # Add next review date
+                word.next_review = progress.next_review_at
+            else:
+                word.next_review = None
+                
+            # Add word to the appropriate level list
+            words_by_level[level].append(word)
+        
+        # Count total words
+        total_words = sum(len(words) for words in words_by_level.values())
+        
+        return render_template('words.html', 
+                            words_by_level=words_by_level,
+                            total_words=total_words)
     return app
 
 if __name__ == '__main__':

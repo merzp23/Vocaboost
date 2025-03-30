@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}VocaBoost - Review{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fs-4">Words Due for Review</h2>
+        <p class="text-muted">Review these words to reinforce your memory</p>
+    </div>
+    <div class="col-auto">
+        <a href="/" class="btn btn-outline-primary">Back to Search</a>
+    </div>
+</div>
+
+{% if due_words %}
+    <div class="progress mb-4" style="height: 2px;">
+        <div class="progress-bar" role="progressbar" style="width: 0%;" id="reviewProgress"></div>
+    </div>
+    
+    <div id="reviewContainer">
+        {% for progress in due_words %}
+            <div class="card review-card mb-4 {% if not loop.first %}d-none{% endif %}" 
+                 data-word-id="{{ progress.word.id }}" 
+                 data-index="{{ loop.index0 }}"
+                 data-total="{{ due_words|length }}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="badge bg-primary">Level {{ progress.memory_level }}/5</span>
+                    <span class="text-muted small">Card {{ loop.index }}/{{ due_words|length }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="review-front mb-4">
+                        <h3 class="text-center fs-1 mb-4">{{ progress.word.text }}</h3>
+                        
+                        {% if progress.word.audio_url %}
+                            <div class="text-center mb-3">
+                                <button class="btn btn-sm btn-outline-secondary rounded-circle" 
+                                        onclick="playAudio('{{ progress.word.audio_url }}')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                                         fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/>
+                                        <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.483 5.483 0 0 1 11.025 8a5.483 5.483 0 0 1-1.61 3.89l.706.706z"/>
+                                        <path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="text-center">
+                            <button class="btn btn-outline-primary" onclick="showAnswer(this)">
+                                Show Definition
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="review-back d-none">
+                        <div class="definition-box p-3 bg-light rounded mb-4">
+                            <p class="mb-0">{{ progress.word.definition }}</p>
+                        </div>
+                        
+                        {% if progress.word.example %}
+                            <div class="example-box p-3 border-start border-3 border-primary mb-4">
+                                <p class="mb-0 fst-italic">"{{ progress.word.example }}"</p>
+                            </div>
+                        {% endif %}
+                        
+                        <p class="text-center mb-4">How well did you remember this word?</p>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-outline-danger" onclick="submitReview({{ progress.word.id }}, false)">
+                                Didn't Remember
+                            </button>
+                            <button class="btn btn-outline-success" onclick="submitReview({{ progress.word.id }}, true)">
+                                Remembered
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Review complete message -->
+    <div id="reviewComplete" class="d-none text-center py-5">
+        <div class="mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-check-circle text-success" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+            </svg>
+        </div>
+        <h3 class="fs-3 mb-3">Review Complete!</h3>
+        <p class="text-muted mb-4">You've reviewed all your due words.</p>
+        <a href="/" class="btn btn-primary">Back to Search</a>
+    </div>
+{% else %}
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">No words due for review!</h4>
+        <p>You don't have any words due for review at this time. Search and save some words to start learning.</p>
+        <hr>
+        <p class="mb-0">
+            <a href="/" class="alert-link">Search for words</a> to add to your learning list.
+        </p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function playAudio(audioUrl) {
+        if (audioUrl) {
+            const audio = new Audio(audioUrl);
+            audio.play().catch(e => {
+                console.error('Error playing audio:', e);
+                alert('Could not play audio pronunciation');
+            });
+        }
+    }
+    
+    function showAnswer(button) {
+        const card = button.closest('.review-card');
+        card.querySelector('.review-front').classList.add('d-none');
+        card.querySelector('.review-back').classList.remove('d-none');
+    }
+    
+    function submitReview(wordId, remembered) {
+        // Send review result to server
+        fetch('/review-word', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                word_id: wordId,
+                recalled_correctly: remembered
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNextCard();
+            } else {
+                alert('Failed to save review: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving review:', error);
+            alert('An error occurred while saving the review');
+        });
+    }
+    
+    function showNextCard() {
+        const currentCard = document.querySelector('.review-card:not(.d-none)');
+        const currentIndex = parseInt(currentCard.dataset.index);
+        const totalCards = parseInt(currentCard.dataset.total);
+        
+        // Update progress bar
+        const progressPercent = ((currentIndex + 1) / totalCards) * 100;
+        document.getElementById('reviewProgress').style.width = progressPercent + '%';
+        
+        // Hide current card
+        currentCard.classList.add('d-none');
+        
+        // Show next card or completion message
+        if (currentIndex + 1 < totalCards) {
+            const nextCard = document.querySelector(`.review-card[data-index="${currentIndex + 1}"]`);
+            nextCard.classList.remove('d-none');
+        } else {
+            document.getElementById('reviewContainer').classList.add('d-none');
+            document.getElementById('reviewComplete').classList.remove('d-none');
+        }
+    }
+</script>
+{% endblock %}
