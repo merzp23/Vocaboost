@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocaBoost</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VocaBoost</h1>
+            <p>Vocabulary Learning Made Simple</p>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <form method="POST" action="/">
+                    <div class="search-container">
+                        <input type="text" name="search" id="search" placeholder="Search for a word..." value="{{ search_term }}" required>
+                        <button type="submit">Search</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="result-section">
+                {% if word_data %}
+                <div class="word-card">
+                    <div class="word-card-header">
+                        <h2>{{ word_data[0].word }}</h2>
+                        <button id="saveButton" class="save-btn" onclick="saveWord('{{ word_data[0].word }}')">
+                            Save
+                        </button>
+                    </div>
+                    <!-- new section -->
+                    {% if word_data[0].phonetics %}
+                        {% set found_audio = false %}
+                        {% for phonetic in word_data[0].phonetics %}
+                            {% if phonetic.audio and not found_audio %}
+                                {% set found_audio = true %}
+                                <button class="audio-btn" onclick="playAudio('{{ phonetic.audio }}')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                    </svg>
+                                </button>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <!-- new section -->
+                        {% if word_data[0].phonetic %}
+                            <p class="phonetic">{{ word_data[0].phonetic }}</p>
+                        {% endif %}
+                        
+                        {% for meaning in word_data[0].meanings %}
+                            <div class="meaning">
+                                <h3>{{ meaning.partOfSpeech }}</h3>
+                                <ol class="definitions">
+                                    {% for definition in meaning.definitions %}
+                                        <li>
+                                            <p>{{ definition.definition }}</p>
+                                            {% if definition.example %}
+                                                <p class="example">"{{ definition.example }}"</p>
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ol>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% elif search_term %}
+                    <div class="not-found">
+                        <p>No definition found for "{{ search_term }}". Please check the spelling or try another word.</p>
+                    </div>
+                {% endif %}
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2023 VocaBoost</p>
+        </footer>
+    </div>
+    <script>
+        function playAudio(audioUrl) {
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.play().catch(e => {
+                    console.error('Error playing audio:', e);
+                    alert('Could not play audio pronunciation');
+                });
+            }
+        }
+        function saveWord(word) {
+        // Send an AJAX request to save the word
+        fetch('/save-word', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                word: word,
+                data: JSON.stringify(window.currentWordData)
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Change button appearance
+                const saveButton = document.getElementById('saveButton');
+                saveButton.textContent = "Saved";
+                saveButton.classList.add('saved');
+                
+                // Optionally show a notification
+                alert('Word saved successfully!');
+            } else {
+                alert('Failed to save word: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving word:', error);
+            alert('An error occurred while saving the word');
+        });
+    }
+    </script>
+    
+</body>
+</html>
