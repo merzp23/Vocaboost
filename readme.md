@@ -33,7 +33,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 ```
-Edit the `.env` file and add your Gemini API key. You can get one from [Google AI Studio](https://makersuite.google.com/).
+Edit the `.env` file and add your Gemini API key. You can get one from [Google AI Studio](https://aistudio.google.com/apikey).
 5. Initialize the database:
 ```bash
 python reset_db.py
@@ -68,10 +68,6 @@ python app.py
 - `vocaboost/services/`: External API integrations
 - `vocaboost/templates/`: HTML templates
 - `vocaboost/static/`: CSS, JavaScript, and other static files
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 

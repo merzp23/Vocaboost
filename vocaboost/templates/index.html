@@ -58,6 +58,28 @@
                                 </li>
                             {% endfor %}
                         </ol>
+                            <!-- Add synonyms and antonyms section -->
+                            {% if meaning.synonyms and meaning.synonyms|length > 0 %}
+                            <div class="synonyms mt-3">
+                                <h4 class="fs-6 text-primary">Synonyms:</h4>
+                                <p>
+                                    {% for synonym in meaning.synonyms %}
+                                        <span class="badge bg-light text-dark border me-2 mb-2">{{ synonym }}</span>
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if meaning.antonyms and meaning.antonyms|length > 0 %}
+                            <div class="antonyms mt-2">
+                                <h4 class="fs-6 text-danger">Antonyms:</h4>
+                                <p>
+                                    {% for antonym in meaning.antonyms %}
+                                        <span class="badge bg-light text-dark border me-2 mb-2">{{ antonym }}</span>
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            {% endif %}
                     </div>
                 {% endfor %}
             </div>
